@@ -452,19 +452,34 @@ function renderWall() {
     const isMyVote = myVotes.includes(note.id);
     const isTop    = (note.votes||0) > 0 && note.votes === maxVotes;
     const canVote  = phase === 'vote';
+    // 把 id 和 votes 存到全局 map，避免 HTML 字符串传参问题
+    window._noteMap = window._noteMap || {};
+    window._noteMap[note.id] = note.votes || 0;
     return `
       <div class="note-card ${isMyVote?'my-voted':''} ${isTop?'top-voted':''}"
-           onclick="voteNote('${note.id}', ${note.votes||0})">
-        ${isTop ? '<div class="top-badge">⭐ 最高票</div>' : ''}
-        <div class="note-text">${esc(note.text)}</div>
-        <div class="note-footer">
-          <div class="note-author">${esc(note.author||'匿名')}</div>
-          <button class="vote-btn ${isMyVote?'active':''}" ${!canVote?'disabled':''}>
-            ⭐ ${note.votes||''}
-          </button>
+           data-id="${note.id}">
+        ${isTop ? '<div class="top-badge">\u2b50 \u6700\u9ad8\u7968</div>' : ''}
+        <div class="note-text" style="pointer-events:none">${esc(note.text)}</div>
+        <div class="note-footer" style="pointer-events:none">
+          <div class="note-author">${esc(note.author||'\u533f\u540d')}</div>
+          <div class="vote-count ${isMyVote?'active-vote':''}" style="font-size:13px;font-weight:800;color:${isMyVote?'#e8a922':'#7a94b8'}">
+            \u2b50 ${note.votes||''}
+          </div>
         </div>
       </div>`;
   }).join('');
+
+  // 给每张卡片单独绑定 touchend + click，手机兼容性最好
+  grid.querySelectorAll('.note-card').forEach(card => {
+    const handler = (e) => {
+      e.preventDefault();
+      const id = card.dataset.id;
+      const votes = window._noteMap[id] || 0;
+      voteNote(id, votes);
+    };
+    card.addEventListener('touchend', handler, { passive: false });
+    card.addEventListener('click', handler);
+  });
 }
 
 // ── SYNC ──
