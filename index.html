@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>害怕墙 — 诗篇27篇</title>
+<style>
+  :root {
+    --blue-deep: #1e3a6e;
+    --blue-mid:  #2c6db5;
+    --blue-soft: #4a90d9;
+    --blue-pale: #ddeaf8;
+    --bg:        #f0f5fc;
+    --text:      #1a2a4a;
+    --muted:     #7a94b8;
+    --gold:      #e8a922;
+    --radius:    16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+  }
+
+  .nav {
+    background: var(--blue-deep);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,.2);
+  }
+  .nav-title { color: #fff; font-size: 16px; font-weight: 800; }
+  .nav-sub { color: rgba(255,255,255,.5); font-size: 11px; margin-top: 1px; }
+  .tab-row {
+    display: flex; background: rgba(255,255,255,.12);
+    border-radius: 20px; padding: 3px; gap: 2px;
+  }
+  .tab-btn {
+    padding: 5px 14px; border-radius: 16px; font-size: 12px; font-weight: 700;
+    cursor: pointer; color: rgba(255,255,255,.65); border: none;
+    background: transparent; font-family: inherit; transition: all .2s;
+  }
+  .tab-btn.active { background: #fff; color: var(--blue-deep); }
+
+  .view { display: none; padding: 20px 16px 48px; max-width: 520px; margin: 0 auto; }
+  .view.active { display: block; }
+
+  /* ── SUBMIT ── */
+  .verse-card {
+    background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid));
+    border-radius: var(--radius); padding: 22px 24px; color: #fff;
+    margin-bottom: 24px; position: relative; overflow: hidden;
+  }
+  .verse-card::after {
+    content: '✦'; position: absolute; right: 20px; top: 16px;
+    font-size: 32px; opacity: .1;
+  }
+  .verse-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; opacity: .7; margin-bottom: 8px; }
+  .verse-text { font-size: 17px; font-weight: 700; line-height: 1.65; }
+  .verse-ref { font-size: 12px; opacity: .6; margin-top: 8px; }
+
+  .section-label {
+    font-size: 11px; font-weight: 800; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+  }
+  .sticky-area {
+    background: #fff8e0; border-radius: var(--radius);
+    padding: 18px 18px 12px; border: 2px solid #f0d898; margin-bottom: 14px;
+  }
+  .sticky-area textarea {
+    width: 100%; background: transparent; border: none; outline: none;
+    font-size: 15px; font-family: inherit; color: #4a3800;
+    resize: none; line-height: 1.7; min-height: 80px;
+  }
+  .sticky-area textarea::placeholder { color: #c5a84a; }
+  .char-count { text-align: right; font-size: 11px; color: #c5a84a; margin-top: 4px; }
+
+  .name-row { display: flex; gap: 10px; margin-bottom: 14px; }
+  .name-input {
+    flex: 1; background: #fff; border: 2px solid var(--blue-pale);
+    border-radius: 10px; padding: 11px 14px; font-size: 14px;
+    font-family: inherit; color: var(--text); outline: none; transition: border-color .2s;
+  }
+  .name-input:focus { border-color: var(--blue-soft); }
+  .anon-btn {
+    background: var(--blue-pale); color: var(--blue-mid); font-size: 12px;
+    font-weight: 700; padding: 11px 14px; border-radius: 10px; cursor: pointer;
+    white-space: nowrap; border: none; font-family: inherit; transition: all .2s;
+  }
+  .anon-btn.on { background: var(--blue-mid); color: #fff; }
+
+  .submit-btn {
+    width: 100%; padding: 15px; background: var(--blue-mid); color: #fff;
+    border: none; border-radius: var(--radius); font-size: 16px; font-weight: 800;
+    cursor: pointer; font-family: inherit; transition: all .15s;
+  }
+  .submit-btn:active { transform: scale(.97); background: var(--blue-deep); }
+  .submit-btn:disabled { background: #b0c4e0; cursor: not-allowed; }
+
+  .success-screen { display: none; text-align: center; padding: 40px 10px; }
+  .success-icon { font-size: 56px; margin-bottom: 14px; }
+  .success-title { font-size: 22px; font-weight: 800; color: var(--blue-deep); margin-bottom: 8px; }
+  .success-sub { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
+  .vote-hint {
+    background: var(--blue-pale); border-radius: var(--radius);
+    padding: 16px 18px; font-size: 14px; color: var(--blue-deep);
+    font-weight: 600; line-height: 1.7; margin-bottom: 16px;
+  }
+  .go-wall-btn {
+    width: 100%; padding: 14px; background: var(--blue-deep); color: #fff;
+    border: none; border-radius: var(--radius); font-size: 15px; font-weight: 800;
+    cursor: pointer; font-family: inherit;
+  }
+
+  /* ── WALL (student) ── */
+  .wall-header { text-align: center; margin-bottom: 20px; }
+  .wall-title { font-size: 22px; font-weight: 900; color: var(--blue-deep); }
+  .phase-pill {
+    display: inline-block; margin-top: 6px; padding: 4px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 700;
+  }
+  .phase-pill.submit { background: #ddeaf8; color: var(--blue-mid); }
+  .phase-pill.vote   { background: #fff3cd; color: #b7720a; }
+
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 12px;
+  }
+  .note-card {
+    background: #fff8e0; border-radius: 12px; padding: 14px 13px 11px;
+    position: relative; box-shadow: 0 3px 10px rgba(0,0,0,.08);
+    cursor: pointer; min-height: 100px; display: flex; flex-direction: column;
+    justify-content: space-between; transition: transform .15s;
+    animation: popIn .3s ease;
+  }
+  @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .note-card:nth-child(3n+2) { background: #e8f4ff; }
+  .note-card:nth-child(3n+3) { background: #ffe8f4; }
+  .note-card:hover { transform: translateY(-2px); }
+  .note-card.my-voted { outline: 3px solid var(--gold); }
+  .note-card.top-voted { background: linear-gradient(135deg, #fff3cd, #ffe89a) !important; }
+  .top-badge {
+    position: absolute; top: -8px; right: -6px;
+    background: var(--gold); color: #fff; font-size: 10px; font-weight: 800;
+    padding: 2px 8px; border-radius: 10px;
+  }
+  .note-text {
+    font-size: 13px; line-height: 1.6; color: #2a2a2a;
+    font-weight: 600; flex: 1; margin-bottom: 8px; word-break: break-all;
+  }
+  .note-footer { display: flex; justify-content: space-between; align-items: center; }
+  .note-author { font-size: 10px; color: #aaa; font-style: italic; }
+  .vote-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 13px; color: var(--muted); font-family: inherit;
+    font-weight: 700; padding: 0; transition: color .15s;
+  }
+  .vote-btn.active { color: var(--gold); }
+  .vote-btn:disabled { opacity: .4; cursor: default; }
+
+  .empty-wall {
+    grid-column: 1/-1; text-align: center; padding: 50px 20px; color: var(--muted);
+  }
+  .empty-wall .emoji { font-size: 36px; margin-bottom: 10px; }
+  .empty-wall p { font-size: 13px; line-height: 1.7; }
+
+  .votes-left {
+    text-align: center; font-size: 12px; color: var(--muted);
+    font-weight: 700; margin-bottom: 14px;
+  }
+  .votes-left span { color: var(--blue-mid); font-size: 16px; }
+
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--blue-deep); color: #fff; padding: 10px 22px;
+    border-radius: 30px; font-size: 13px; font-weight: 700;
+    opacity: 0; transition: all .3s; pointer-events: none;
+    white-space: nowrap; z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div>
+    <div class="nav-title">害怕墙 · 诗篇27篇</div>
+    <div class="nav-sub">Angst-Wand — Psalm 27</div>
+  </div>
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab('submit')">写便利贴</button>
+    <button class="tab-btn" onclick="switchTab('wall')">查看墙</button>
+  </div>
+</nav>
+
+<!-- SUBMIT TAB -->
+<div id="tab-submit" class="view active">
+  <div class="verse-card">
+    <div class="verse-label">今日金句 · Leitvers</div>
+    <div class="verse-text">「耶和华是我的亮光，是我的拯救，我还怕谁呢？」</div>
+    <div class="verse-ref">诗篇 27:1 — Psalm 27,1</div>
+  </div>
+
+  <div id="submit-form">
+    <div class="section-label">写下你的害怕</div>
+    <div class="sticky-area">
+      <textarea id="fear-text" placeholder="有什么让你感到害怕？写下来吧……可以是任何事，大的小的都行。" maxlength="60" oninput="updateChar()"></textarea>
+      <div class="char-count"><span id="char-count">0</span> / 60</div>
+    </div>
+    <div class="name-row">
+      <input type="text" id="name-input" class="name-input" placeholder="你的名字（可选）" maxlength="10">
+      <button class="anon-btn" id="anon-btn" onclick="toggleAnon()">匿名</button>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitNote()">贴上去 →</button>
+  </div>
+
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">📌</div>
+    <div class="success-title">已经贴上去了！</div>
+    <div class="success-sub">你的便利贴已经实时出现在墙上了。<br>等老师开始投票环节……</div>
+    <div class="vote-hint">
+      💡 投票开始后，点击你也有共鸣的便利贴给它一个 ⭐<br>每人最多投 <strong>3</strong> 票
+    </div>
+    <button class="go-wall-btn" onclick="switchTab('wall')">去看大家的便利贴 →</button>
+  </div>
+</div>
+
+<!-- WALL TAB (student, no controls) -->
+<div id="tab-wall" class="view">
+  <div class="wall-header">
+    <div class="wall-title">害怕墙</div>
+    <div id="phase-pill" class="phase-pill submit">📝 提交中，暂未开放投票</div>
+  </div>
+
+  <div class="votes-left" id="votes-left" style="display:none">
+    剩余票数：<span id="votes-remaining">3</span>
+  </div>
+
+  <div class="notes-grid" id="notes-grid">
+    <div class="empty-wall">
+      <div class="emoji">🗒️</div>
+      <p>还没有便利贴<br>去写一张贴上来吧！</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://nlszsbmuvxbylplsfeot.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_R6wFFFtXzmCr8w6F7nE3fA_et04mgQJ';
+const PHASE_KEY    = 'psalm27_phase';
+
+const headers = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation'
+};
+
+let notes    = [];
+let myVotes  = JSON.parse(localStorage.getItem('psalm27_votes') || '[]');
+let phase    = 'submit';
+let anonMode = false;
+
+// ── API ──
+async function fetchNotes() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?select=*&order=created_at.desc`, { headers });
+  return res.json();
+}
+async function fetchPhase() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/phase?select=value&limit=1`, { headers });
+  const data = await res.json();
+  return data?.[0]?.value || 'submit';
+}
+async function insertNote(text, author) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/notes`, {
+    method: 'POST', headers,
+    body: JSON.stringify({ text, author })
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+async function updateVotes(id, votes) {
+  await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${id}`, {
+    method: 'PATCH', headers,
+    body: JSON.stringify({ votes })
+  });
+}
+
+// ── STUDENT ──
+function updateChar() {
+  document.getElementById('char-count').textContent =
+    document.getElementById('fear-text').value.length;
+}
+function toggleAnon() {
+  anonMode = !anonMode;
+  const btn = document.getElementById('anon-btn');
+  const inp = document.getElementById('name-input');
+  btn.classList.toggle('on', anonMode);
+  inp.disabled = anonMode; inp.value = '';
+  inp.placeholder = anonMode ? '匿名模式' : '你的名字（可选）';
+}
+async function submitNote() {
+  const text = document.getElementById('fear-text').value.trim();
+  if (!text) { showToast('先写点什么吧 ✏️'); return; }
+  const nameVal = document.getElementById('name-input').value.trim();
+  const author  = anonMode ? '匿名' : (nameVal || '匿名');
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = '提交中…';
+  try {
+    await insertNote(text, author);
+    document.getElementById('submit-form').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    showToast('便利贴已贴上！📌');
+  } catch(e) {
+    showToast('提交失败，请重试 😢');
+  } finally {
+    btn.disabled = false; btn.textContent = '贴上去 →';
+  }
+}
+
+// ── VOTE ──
+async function voteNote(id, currentVotes) {
+  if (phase !== 'vote') { showToast('投票还没开始，等老师一声令下 🙂'); return; }
+  const alreadyVoted = myVotes.includes(id);
+  if (alreadyVoted) {
+    myVotes = myVotes.filter(v => v !== id);
+    await updateVotes(id, Math.max(0, currentVotes - 1));
+    showToast('已取消投票');
+  } else {
+    if (myVotes.length >= 3) { showToast('最多投 3 票哦 ⭐'); return; }
+    myVotes.push(id);
+    await updateVotes(id, currentVotes + 1);
+    showToast('投票成功 ⭐');
+  }
+  localStorage.setItem('psalm27_votes', JSON.stringify(myVotes));
+  notes = await fetchNotes();
+  renderWall();
+}
+
+// ── RENDER ──
+function renderWall() {
+  const pill = document.getElementById('phase-pill');
+  const vl   = document.getElementById('votes-left');
+  const vr   = document.getElementById('votes-remaining');
+  if (phase === 'vote') {
+    pill.textContent = '⭐ 投票中！点击便利贴投票';
+    pill.className = 'phase-pill vote';
+    vl.style.display = 'block';
+    vr.textContent = 3 - myVotes.length;
+  } else {
+    pill.textContent = '📝 提交中，暂未开放投票';
+    pill.className = 'phase-pill submit';
+    vl.style.display = 'none';
+  }
+
+  const maxVotes = notes.length ? Math.max(...notes.map(n => n.votes || 0)) : 0;
+  const grid = document.getElementById('notes-grid');
+
+  if (notes.length === 0) {
+    grid.innerHTML = `<div class="empty-wall"><div class="emoji">🗒️</div><p>还没有便利贴<br>去写一张贴上来吧！</p></div>`;
+    return;
+  }
+
+  const sorted = [...notes].sort((a,b) => (b.votes||0) - (a.votes||0) || new Date(b.created_at) - new Date(a.created_at));
+  grid.innerHTML = sorted.map(note => {
+    const isMyVote = myVotes.includes(note.id);
+    const isTop    = (note.votes||0) > 0 && note.votes === maxVotes;
+    const canVote  = phase === 'vote';
+    return `
+      <div class="note-card ${isMyVote?'my-voted':''} ${isTop?'top-voted':''}"
+           onclick="voteNote('${note.id}', ${note.votes||0})">
+        ${isTop ? '<div class="top-badge">⭐ 最高票</div>' : ''}
+        <div class="note-text">${esc(note.text)}</div>
+        <div class="note-footer">
+          <div class="note-author">${esc(note.author||'匿名')}</div>
+          <button class="vote-btn ${isMyVote?'active':''}" ${!canVote?'disabled':''}>
+            ⭐ ${note.votes||''}
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── SYNC ──
+async function sync() {
+  try {
+    [notes, phase] = await Promise.all([fetchNotes(), fetchPhase()]);
+    renderWall();
+  } catch(e) {}
+}
+
+// ── UI ──
+function switchTab(t) {
+  document.getElementById('tab-submit').classList.toggle('active', t === 'submit');
+  document.getElementById('tab-wall').classList.toggle('active', t === 'wall');
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0&&t==='submit')||(i===1&&t==='wall'));
+  });
+  if (t === 'wall') sync();
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+sync();
+setInterval(sync, 4000);
+</script>
+</body>
+</html>
